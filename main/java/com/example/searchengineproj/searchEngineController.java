@@ -28,6 +28,7 @@ public class searchEngineController {
 
 
         button.setOpacity(0.5);
+
     }
 
 

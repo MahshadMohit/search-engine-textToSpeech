@@ -15,9 +15,14 @@ public class searchEngineApplication extends Application {
         stage.setTitle("Hello!");
         stage.setScene(scene);
         stage.show();
+
     }
 
     public static void main(String[] args) {
         launch();
+        SearchEngineFunctions sf = new SearchEngineFunctions();
+        sf.buildFile("C:\\Users\\asus\\IdeaProjects\\searchEngineProj\\src\\EnglishData");
+
+
     }
 }
