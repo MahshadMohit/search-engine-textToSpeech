@@ -10,43 +10,47 @@ public class SearchEngineFunctions {
         map = new HashMap<>();
     }
 
-    public void buildFile(String path){
-        File folder = new File(path);
-        if (!folder.exists() || folder.isDirectory()){
+    public void buildFile(String folderPath) {
+        File folder = new File(folderPath);
+        if (!folder.exists() || !folder.isDirectory()) {
+            System.out.println("Folder does not exist or is not a directory.");
             return;
         }
 
         File[] files = folder.listFiles();
-        if (files != null){
-            for (File file : files){
-                if (file.isFile()){
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
                     String fileName = file.getName();
-                    //String filePath = file.getPath();
 
                     try {
-                        List<String> list = Files.readAllLines(file.toPath());
-                        for (String line : list){
-                            String[] words = line.trim().split("\\s+");
-                            List<String> l1 = new ArrayList<>();
-                            for (String word : words){
-                                String key = word.toLowerCase();
-                                l1.add(key);
-                            }
-                            for (String k : l1){
-                                if (map.containsKey(k)){
-                                    map.get(k).add(fileName);
-                                }else{
-                                    List<String> names = new ArrayList<>();
-                                    names.add(fileName);
-                                    map.put(k,names);
+                        List<String> lines = Files.readAllLines(file.toPath());
+                        for (String line : lines) {
+                            List<String> list = everyKey(line);
+                            for (String keyword : list) {
+                                if (map.containsKey(keyword)) {
+                                    map.get(keyword).add(fileName);
+                                } else {
+                                    List<String> fileNames = new ArrayList<>();
+                                    fileNames.add(fileName);
+                                    map.put(keyword, fileNames);
                                 }
                             }
                         }
-                    }catch (IOException e){
+                    } catch (IOException e) {
+                        System.out.println("Error");
                         e.printStackTrace();
                     }
                 }
             }
         }
+    }
+    private List<String> everyKey(String str){
+        String[] words = str.trim().split("\\s+");
+        List<String> allWords = new ArrayList<>();
+        for (String s : words){
+            allWords.add(s.toLowerCase());
+        }
+        return allWords;
     }
 }
