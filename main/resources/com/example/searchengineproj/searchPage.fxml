@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.Glow?>
+<?import javafx.scene.effect.Reflection?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane prefHeight="486.0" prefWidth="805.0" style="-fx-background-color: #FCFCFC;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.searchengineproj.SearchPage">
+    <children>
+        <ImageView fitHeight="449.0" fitWidth="492.0" layoutX="345.0" layoutY="21.0" opacity="0.22" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@../../../AA.jpg" />
+            </image>
+        </ImageView>
+        <ImageView fitHeight="62.0" fitWidth="199.0" layoutX="602.0" layoutY="12.0" pickOnBounds="true" preserveRatio="true">
+            <image>
+                <Image url="@../../../searchIcon.png" />
+            </image>
+        </ImageView>
+        <Rectangle arcHeight="30.0" arcWidth="5.0" fill="#d1ecff" height="26.0" layoutX="14.0" layoutY="37.0" stroke="#a19b9b" strokeType="INSIDE" strokeWidth="0.3" width="536.0">
+            <effect>
+                <Reflection bottomOpacity="0.12" fraction="0.47" topOpacity="1.0" />
+            </effect>
+        </Rectangle>
+        <TextField fx:id="textField" layoutX="14.0" layoutY="37.0" prefHeight="25.0" prefWidth="536.0" promptText="search anything.." style="-fx-background-color: TRANSPARENT;">
+            <cursor>
+                <Cursor fx:constant="TEXT" />
+            </cursor>
+         <font>
+            <Font name="Arial" size="12.0" />
+         </font>
+        </TextField>
+        <Button fx:id="goBtn" layoutX="560.0" layoutY="37.0" mnemonicParsing="false" style="-fx-background-color: TRANSPARENT;" text="Go!" textFill="#376dfe">
+            <font>
+                <Font name="Berlin Sans FB" size="18.0" />
+            </font>
+            <effect>
+                <Reflection bottomOpacity="0.14" fraction="0.66" topOpacity="0.43" />
+            </effect>
+            <cursor>
+                <Cursor fx:constant="HAND" />
+            </cursor>
+        </Button>
+      <VBox layoutX="14.0" layoutY="95.0" prefHeight="313.0" prefWidth="769.0" style="-fx-border-width: 0.3; -fx-border-color: #7F7F7F;">
+         <children>
+            <VBox alignment="CENTER_LEFT" prefHeight="62.0" prefWidth="536.0">
+               <children>
+                  <Hyperlink fx:id="link1" prefHeight="24.0" prefWidth="609.0" text="Hyperlink" />
+                  <Text fx:id="t1" strokeType="OUTSIDE" strokeWidth="0.0" text="Text">
+                     <font>
+                        <Font name="Book Antiqua" size="11.0" />
+                     </font>
+                  </Text>
+               </children>
+               <padding>
+                  <Insets bottom="1.0" left="1.0" right="1.0" top="1.0" />
+               </padding>
+            </VBox>
+            <VBox alignment="CENTER_LEFT" prefHeight="62.0" prefWidth="536.0">
+               <children>
+                  <Hyperlink fx:id="link2" prefHeight="24.0" prefWidth="609.0" text="Hyperlink" />
+                  <Text fx:id="t2" strokeType="OUTSIDE" strokeWidth="0.0" text="Text">
+                     <font>
+                        <Font name="Arial" size="12.0" />
+                     </font>
+                  </Text>
+               </children>
+            </VBox>
+            <VBox alignment="CENTER_LEFT" prefHeight="62.0" prefWidth="536.0">
+               <children>
+                  <Hyperlink fx:id="link3" prefHeight="24.0" prefWidth="609.0" text="Hyperlink" />
+                  <Text fx:id="t3" strokeType="OUTSIDE" strokeWidth="0.0" text="Text">
+                     <font>
+                        <Font name="Arial" size="12.0" />
+                     </font>
+                  </Text>
+               </children>
+            </VBox>
+            <VBox alignment="CENTER_LEFT" prefHeight="62.0" prefWidth="536.0">
+               <children>
+                  <Hyperlink fx:id="link4" prefHeight="24.0" prefWidth="609.0" text="Hyperlink" />
+                  <Text fx:id="t4" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+               </children>
+            </VBox>
+            <VBox alignment="CENTER_LEFT" prefHeight="62.0" prefWidth="536.0">
+               <children>
+                  <Hyperlink fx:id="link5" prefHeight="24.0" prefWidth="609.0" text="Hyperlink" />
+                  <Text fx:id="t5" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" />
+               </children>
+            </VBox>
+         </children>
+         <effect>
+            <Glow level="0.99" />
+         </effect>
+      </VBox>
+      <Button fx:id="back" disable="true" layoutX="314.0" layoutY="407.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="42.0" style="-fx-background-color: TRANSPARENT;" text="&lt;" textFill="#376dfe">
+         <font>
+            <Font name="Berlin Sans FB" size="30.0" />
+         </font>
+         <effect>
+            <Reflection bottomOpacity="0.14" fraction="0.66" topOpacity="0.43" />
+         </effect>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Button fx:id="next" layoutX="381.0" layoutY="407.0" mnemonicParsing="false" style="-fx-background-color: TRANSPARENT;" text="&gt;" textFill="#376dfe">
+         <font>
+            <Font name="Berlin Sans FB" size="30.0" />
+         </font>
+         <effect>
+            <Reflection bottomOpacity="0.14" fraction="0.66" topOpacity="0.43" />
+         </effect>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+    </children>
+</AnchorPane>
