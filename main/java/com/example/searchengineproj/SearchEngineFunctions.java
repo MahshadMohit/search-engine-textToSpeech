@@ -4,16 +4,24 @@ import java.nio.file.Files;
 import java.util.*;
 import java.io.*;
 public class SearchEngineFunctions {
-    private Map<String,List<String>> map;
+    public static Map<String,List<String>> map;
 
     public SearchEngineFunctions(){
         map = new HashMap<>();
+    }
+    private List<String> everyKey(String str){
+        String[] words = str.trim().split("\\s+");
+        List<String> allWords = new ArrayList<>();
+        for (String s : words){
+            allWords.add(s.toLowerCase());
+        }
+        return allWords;
     }
 
     public void buildFile(String folderPath) {
         File folder = new File(folderPath);
         if (!folder.exists() || !folder.isDirectory()) {
-            System.out.println("Folder does not exist or is not a directory.");
+            System.out.println("Folder does not exist");
             return;
         }
 
@@ -45,12 +53,9 @@ public class SearchEngineFunctions {
             }
         }
     }
-    private List<String> everyKey(String str){
-        String[] words = str.trim().split("\\s+");
-        List<String> allWords = new ArrayList<>();
-        for (String s : words){
-            allWords.add(s.toLowerCase());
-        }
-        return allWords;
+    public List<String> findDoc(String word){
+        return map.get(word);
     }
+
+
 }
