@@ -1,6 +1,6 @@
 package com.example.searchengineproj;
 
-import org.apache.commons.codec.language.Soundex;
+//import org.apache.commons.codec.language.Soundex;
 
 import java.nio.file.Files;
 import java.util.*;
@@ -8,11 +8,11 @@ import java.io.*;
 
 public class SearchEngineFunctions {
     public static Map<String, List<String>> map;
-    private final Soundex soundex;
+    //private final Soundex soundex;
 
     public SearchEngineFunctions() {
         map = new HashMap<>();
-        soundex = new Soundex();
+        //soundex = new Soundex();
 
     }
 
@@ -65,7 +65,7 @@ public class SearchEngineFunctions {
         return map.get(word);
     }
 
-    public List<String> findSimilarDocs(String str) {
+    /*public List<String> findSimilarDocs(String str) {
         List<String> docs = new ArrayList<>();
         String query = soundex.encode(str.toLowerCase());
         for (String word : map.keySet()) {
@@ -76,7 +76,7 @@ public class SearchEngineFunctions {
             }
         }
         return docs;
-    }
+    }*/
 
     public List<String> plusSearch(String first, String second) {
         List<String> list1 = findDoc(first);
