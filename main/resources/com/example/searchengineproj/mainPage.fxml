@@ -38,7 +38,7 @@
             <Font name="Berlin Sans FB" size="18.0" />
          </font>
       </Text>
-      <Button fx:id="goBtn" layoutX="663.0" layoutY="296.0" mnemonicParsing="false" style="-fx-background-color: TRANSPARENT;" text="Go!" textFill="#376dfe">
+      <Button fx:id="goBtn" layoutX="663.0" layoutY="296.0" mnemonicParsing="false" style="-fx-background-color: TRANSPARENT;" text="Go!" onAction="#setGoBtn" textFill="#376dfe">
          <font>
             <Font name="Berlin Sans FB" size="18.0" />
          </font>
