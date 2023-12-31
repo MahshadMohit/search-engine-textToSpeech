@@ -1,13 +1,18 @@
 package com.example.searchengineproj;
 
+import org.apache.commons.codec.language.Soundex;
+
 import java.nio.file.Files;
 import java.util.*;
 import java.io.*;
 public class SearchEngineFunctions {
     public static Map<String,List<String>> map;
+    private Soundex soundex;
 
     public SearchEngineFunctions(){
         map = new HashMap<>();
+        soundex = new Soundex();
+
     }
     private List<String> everyKey(String str){
         String[] words = str.trim().split("\\s+");
@@ -56,6 +61,20 @@ public class SearchEngineFunctions {
     public List<String> findDoc(String word){
         return map.get(word);
     }
+    public List<String> findSimilarDocs(String str){
+        List<String> docs = new ArrayList<>();
+        String query = soundex.encode(str.toLowerCase());
+        for (String word : map.keySet()){
+            String s = soundex.encode(word.toLowerCase());
+
+            if (query.equals(s)){
+                docs.addAll(map.get(word));
+            }
+        }
+        return docs;
+    }
+
+
 
 
 }
