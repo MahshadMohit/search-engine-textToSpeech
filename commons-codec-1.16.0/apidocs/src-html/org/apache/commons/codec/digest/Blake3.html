@@ -1,0 +1,616 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>/*<a name="line.1"></a>
+<span class="sourceLineNo">002</span> * Licensed to the Apache Software Foundation (ASF) under one or more<a name="line.2"></a>
+<span class="sourceLineNo">003</span> * contributor license agreements.  See the NOTICE file distributed with<a name="line.3"></a>
+<span class="sourceLineNo">004</span> * this work for additional information regarding copyright ownership.<a name="line.4"></a>
+<span class="sourceLineNo">005</span> * The ASF licenses this file to You under the Apache License, Version 2.0<a name="line.5"></a>
+<span class="sourceLineNo">006</span> * (the "License"); you may not use this file except in compliance with<a name="line.6"></a>
+<span class="sourceLineNo">007</span> * the License.  You may obtain a copy of the License at<a name="line.7"></a>
+<span class="sourceLineNo">008</span> *<a name="line.8"></a>
+<span class="sourceLineNo">009</span> *      http://www.apache.org/licenses/LICENSE-2.0<a name="line.9"></a>
+<span class="sourceLineNo">010</span> *<a name="line.10"></a>
+<span class="sourceLineNo">011</span> * Unless required by applicable law or agreed to in writing, software<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * distributed under the License is distributed on an "AS IS" BASIS,<a name="line.12"></a>
+<span class="sourceLineNo">013</span> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * See the License for the specific language governing permissions and<a name="line.14"></a>
+<span class="sourceLineNo">015</span> * limitations under the License.<a name="line.15"></a>
+<span class="sourceLineNo">016</span> */<a name="line.16"></a>
+<span class="sourceLineNo">017</span>package org.apache.commons.codec.digest;<a name="line.17"></a>
+<span class="sourceLineNo">018</span><a name="line.18"></a>
+<span class="sourceLineNo">019</span>import java.util.Arrays;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import java.util.Objects;<a name="line.20"></a>
+<span class="sourceLineNo">021</span><a name="line.21"></a>
+<span class="sourceLineNo">022</span>/**<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * Implements the Blake3 algorithm providing a {@linkplain #initHash() hash function} with extensible output (XOF), a<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * {@linkplain #initKeyedHash(byte[]) keyed hash function} (MAC, PRF), and a<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * {@linkplain #initKeyDerivationFunction(byte[]) key derivation function} (KDF). Blake3 has a 128-bit security level<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * and a default output length of 256 bits (32 bytes) which can extended up to 2&lt;sup&gt;64&lt;/sup&gt; bytes.<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * &lt;h2&gt;Hashing&lt;/h2&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * &lt;p&gt;Hash mode calculates the same output hash given the same input bytes and can be used as both a message digest and<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * and extensible output function.&lt;/p&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * &lt;pre&gt;{@code<a name="line.30"></a>
+<span class="sourceLineNo">031</span> *      Blake3 hasher = Blake3.initHash();<a name="line.31"></a>
+<span class="sourceLineNo">032</span> *      hasher.update("Hello, world!".getBytes(StandardCharsets.UTF_8));<a name="line.32"></a>
+<span class="sourceLineNo">033</span> *      byte[] hash = new byte[32];<a name="line.33"></a>
+<span class="sourceLineNo">034</span> *      hasher.doFinalize(hash);<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * }&lt;/pre&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * &lt;h2&gt;Keyed Hashing&lt;/h2&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * &lt;p&gt;Keyed hashes take a 32-byte secret key and calculates a message authentication code on some input bytes. These<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * also work as pseudo-random functions (PRFs) with extensible output similar to the extensible hash output. Note that<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * Blake3 keyed hashes have the same performance as plain hashes; the key is used in initialization in place of a<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * standard initialization vector used for plain hashing.&lt;/p&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;pre&gt;{@code<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *      SecureRandom random = SecureRandom.getInstanceStrong();<a name="line.42"></a>
+<span class="sourceLineNo">043</span> *      byte[] key = new byte[32];<a name="line.43"></a>
+<span class="sourceLineNo">044</span> *      random.nextBytes(key);<a name="line.44"></a>
+<span class="sourceLineNo">045</span> *      Blake3 hasher = Blake3.initKeyedHash(key);<a name="line.45"></a>
+<span class="sourceLineNo">046</span> *      hasher.update("Hello, Alice!".getBytes(StandardCharsets.UTF_8));<a name="line.46"></a>
+<span class="sourceLineNo">047</span> *      byte[] mac = new byte[32];<a name="line.47"></a>
+<span class="sourceLineNo">048</span> *      hasher.doFinalize(mac);<a name="line.48"></a>
+<span class="sourceLineNo">049</span> * }&lt;/pre&gt;<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * &lt;h2&gt;Key Derivation&lt;/h2&gt;<a name="line.50"></a>
+<span class="sourceLineNo">051</span> * &lt;p&gt;A specific hash mode for deriving session keys and other derived keys in a unique key derivation context<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * identified by some sequence of bytes. These context strings should be unique but do not need to be kept secret.<a name="line.52"></a>
+<span class="sourceLineNo">053</span> * Additional input data is hashed for key material which can be finalized to derive subkeys.&lt;/p&gt;<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * &lt;pre&gt;{@code<a name="line.54"></a>
+<span class="sourceLineNo">055</span> *      String context = "org.apache.commons.codec.digest.Blake3Example";<a name="line.55"></a>
+<span class="sourceLineNo">056</span> *      byte[] sharedSecret = ...;<a name="line.56"></a>
+<span class="sourceLineNo">057</span> *      byte[] senderId = ...;<a name="line.57"></a>
+<span class="sourceLineNo">058</span> *      byte[] recipientId = ...;<a name="line.58"></a>
+<span class="sourceLineNo">059</span> *      Blake3 kdf = Blake3.initKeyDerivationFunction(context.getBytes(StandardCharsets.UTF_8));<a name="line.59"></a>
+<span class="sourceLineNo">060</span> *      kdf.update(sharedSecret);<a name="line.60"></a>
+<span class="sourceLineNo">061</span> *      kdf.update(senderId);<a name="line.61"></a>
+<span class="sourceLineNo">062</span> *      kdf.update(recipientId);<a name="line.62"></a>
+<span class="sourceLineNo">063</span> *      byte[] txKey = new byte[32];<a name="line.63"></a>
+<span class="sourceLineNo">064</span> *      byte[] rxKey = new byte[32];<a name="line.64"></a>
+<span class="sourceLineNo">065</span> *      kdf.doFinalize(txKey);<a name="line.65"></a>
+<span class="sourceLineNo">066</span> *      kdf.doFinalize(rxKey);<a name="line.66"></a>
+<span class="sourceLineNo">067</span> * }&lt;/pre&gt;<a name="line.67"></a>
+<span class="sourceLineNo">068</span> * &lt;p&gt;<a name="line.68"></a>
+<span class="sourceLineNo">069</span> * Adapted from the ISC-licensed O(1) Cryptography library by Matt Sicker and ported from the reference public domain<a name="line.69"></a>
+<span class="sourceLineNo">070</span> * implementation by Jack O'Connor.<a name="line.70"></a>
+<span class="sourceLineNo">071</span> * &lt;/p&gt;<a name="line.71"></a>
+<span class="sourceLineNo">072</span> *<a name="line.72"></a>
+<span class="sourceLineNo">073</span> * @see &lt;a href="https://github.com/BLAKE3-team/BLAKE3"&gt;BLAKE3 hash function&lt;/a&gt;<a name="line.73"></a>
+<span class="sourceLineNo">074</span> * @since 1.16<a name="line.74"></a>
+<span class="sourceLineNo">075</span> */<a name="line.75"></a>
+<span class="sourceLineNo">076</span>public final class Blake3 {<a name="line.76"></a>
+<span class="sourceLineNo">077</span><a name="line.77"></a>
+<span class="sourceLineNo">078</span>    private static final int BLOCK_LEN = 64;<a name="line.78"></a>
+<span class="sourceLineNo">079</span>    private static final int BLOCK_INTS = BLOCK_LEN / Integer.BYTES;<a name="line.79"></a>
+<span class="sourceLineNo">080</span>    private static final int KEY_LEN = 32;<a name="line.80"></a>
+<span class="sourceLineNo">081</span>    private static final int KEY_INTS = KEY_LEN / Integer.BYTES;<a name="line.81"></a>
+<span class="sourceLineNo">082</span>    private static final int OUT_LEN = 32;<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    private static final int CHUNK_LEN = 1024;<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    private static final int CHAINING_VALUE_INTS = 8;<a name="line.84"></a>
+<span class="sourceLineNo">085</span><a name="line.85"></a>
+<span class="sourceLineNo">086</span>    /**<a name="line.86"></a>
+<span class="sourceLineNo">087</span>     * Standard hash key used for plain hashes; same initialization vector as Blake2s.<a name="line.87"></a>
+<span class="sourceLineNo">088</span>     */<a name="line.88"></a>
+<span class="sourceLineNo">089</span>    private static final int[] IV =<a name="line.89"></a>
+<span class="sourceLineNo">090</span>            { 0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19 };<a name="line.90"></a>
+<span class="sourceLineNo">091</span><a name="line.91"></a>
+<span class="sourceLineNo">092</span>    // domain flags<a name="line.92"></a>
+<span class="sourceLineNo">093</span>    private static final int CHUNK_START = 1;<a name="line.93"></a>
+<span class="sourceLineNo">094</span>    private static final int CHUNK_END = 1 &lt;&lt; 1;<a name="line.94"></a>
+<span class="sourceLineNo">095</span>    private static final int PARENT = 1 &lt;&lt; 2;<a name="line.95"></a>
+<span class="sourceLineNo">096</span>    private static final int ROOT = 1 &lt;&lt; 3;<a name="line.96"></a>
+<span class="sourceLineNo">097</span>    private static final int KEYED_HASH = 1 &lt;&lt; 4;<a name="line.97"></a>
+<span class="sourceLineNo">098</span>    private static final int DERIVE_KEY_CONTEXT = 1 &lt;&lt; 5;<a name="line.98"></a>
+<span class="sourceLineNo">099</span>    private static final int DERIVE_KEY_MATERIAL = 1 &lt;&lt; 6;<a name="line.99"></a>
+<span class="sourceLineNo">100</span><a name="line.100"></a>
+<span class="sourceLineNo">101</span>    /**<a name="line.101"></a>
+<span class="sourceLineNo">102</span>     * Pre-permuted for all 7 rounds; the second row (2,6,3,...) indicates the base permutation.<a name="line.102"></a>
+<span class="sourceLineNo">103</span>     */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>    private static final byte[][] MSG_SCHEDULE = {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>            { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },<a name="line.105"></a>
+<span class="sourceLineNo">106</span>            { 2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8 },<a name="line.106"></a>
+<span class="sourceLineNo">107</span>            { 3, 4, 10, 12, 13, 2, 7, 14, 6, 5, 9, 0, 11, 15, 8, 1 },<a name="line.107"></a>
+<span class="sourceLineNo">108</span>            { 10, 7, 12, 9, 14, 3, 13, 15, 4, 0, 11, 2, 5, 8, 1, 6 },<a name="line.108"></a>
+<span class="sourceLineNo">109</span>            { 12, 13, 9, 11, 15, 10, 14, 8, 7, 2, 5, 3, 0, 1, 6, 4 },<a name="line.109"></a>
+<span class="sourceLineNo">110</span>            { 9, 14, 11, 5, 8, 12, 15, 1, 13, 3, 0, 10, 2, 6, 4, 7 },<a name="line.110"></a>
+<span class="sourceLineNo">111</span>            { 11, 15, 5, 0, 1, 9, 8, 6, 14, 10, 2, 12, 3, 4, 7, 13 }<a name="line.111"></a>
+<span class="sourceLineNo">112</span>    };<a name="line.112"></a>
+<span class="sourceLineNo">113</span><a name="line.113"></a>
+<span class="sourceLineNo">114</span>    private final EngineState engineState;<a name="line.114"></a>
+<span class="sourceLineNo">115</span><a name="line.115"></a>
+<span class="sourceLineNo">116</span>    private Blake3(final int[] key, final int flags) {<a name="line.116"></a>
+<span class="sourceLineNo">117</span>        engineState = new EngineState(key, flags);<a name="line.117"></a>
+<span class="sourceLineNo">118</span>    }<a name="line.118"></a>
+<span class="sourceLineNo">119</span><a name="line.119"></a>
+<span class="sourceLineNo">120</span>    /**<a name="line.120"></a>
+<span class="sourceLineNo">121</span>     * Resets this instance back to its initial state when it was first constructed.<a name="line.121"></a>
+<span class="sourceLineNo">122</span>     * @return this<a name="line.122"></a>
+<span class="sourceLineNo">123</span>     */<a name="line.123"></a>
+<span class="sourceLineNo">124</span>    public Blake3 reset() {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        engineState.reset();<a name="line.125"></a>
+<span class="sourceLineNo">126</span>        return this;<a name="line.126"></a>
+<span class="sourceLineNo">127</span>    }<a name="line.127"></a>
+<span class="sourceLineNo">128</span><a name="line.128"></a>
+<span class="sourceLineNo">129</span>    /**<a name="line.129"></a>
+<span class="sourceLineNo">130</span>     * Updates this hash state using the provided bytes.<a name="line.130"></a>
+<span class="sourceLineNo">131</span>     *<a name="line.131"></a>
+<span class="sourceLineNo">132</span>     * @param in source array to update data from<a name="line.132"></a>
+<span class="sourceLineNo">133</span>     * @return this<a name="line.133"></a>
+<span class="sourceLineNo">134</span>     * @throws NullPointerException if in is null<a name="line.134"></a>
+<span class="sourceLineNo">135</span>     */<a name="line.135"></a>
+<span class="sourceLineNo">136</span>    public Blake3 update(final byte[] in) {<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        return update(in, 0, in.length);<a name="line.137"></a>
+<span class="sourceLineNo">138</span>    }<a name="line.138"></a>
+<span class="sourceLineNo">139</span><a name="line.139"></a>
+<span class="sourceLineNo">140</span>    /**<a name="line.140"></a>
+<span class="sourceLineNo">141</span>     * Updates this hash state using the provided bytes at an offset.<a name="line.141"></a>
+<span class="sourceLineNo">142</span>     *<a name="line.142"></a>
+<span class="sourceLineNo">143</span>     * @param in     source array to update data from<a name="line.143"></a>
+<span class="sourceLineNo">144</span>     * @param offset where in the array to begin reading bytes<a name="line.144"></a>
+<span class="sourceLineNo">145</span>     * @param length number of bytes to update<a name="line.145"></a>
+<span class="sourceLineNo">146</span>     * @return this<a name="line.146"></a>
+<span class="sourceLineNo">147</span>     * @throws NullPointerException      if in is null<a name="line.147"></a>
+<span class="sourceLineNo">148</span>     * @throws IndexOutOfBoundsException if offset or length are negative or if offset + length is greater than the<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     *                                   length of the provided array<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     */<a name="line.150"></a>
+<span class="sourceLineNo">151</span>    public Blake3 update(final byte[] in, final int offset, final int length) {<a name="line.151"></a>
+<span class="sourceLineNo">152</span>        checkBufferArgs(in, offset, length);<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        engineState.inputData(in, offset, length);<a name="line.153"></a>
+<span class="sourceLineNo">154</span>        return this;<a name="line.154"></a>
+<span class="sourceLineNo">155</span>    }<a name="line.155"></a>
+<span class="sourceLineNo">156</span><a name="line.156"></a>
+<span class="sourceLineNo">157</span>    /**<a name="line.157"></a>
+<span class="sourceLineNo">158</span>     * Finalizes hash output data that depends on the sequence of updated bytes preceding this invocation and any<a name="line.158"></a>
+<span class="sourceLineNo">159</span>     * previously finalized bytes. Note that this can finalize up to 2&lt;sup&gt;64&lt;/sup&gt; bytes per instance.<a name="line.159"></a>
+<span class="sourceLineNo">160</span>     *<a name="line.160"></a>
+<span class="sourceLineNo">161</span>     * @param out destination array to finalize bytes into<a name="line.161"></a>
+<span class="sourceLineNo">162</span>     * @return this<a name="line.162"></a>
+<span class="sourceLineNo">163</span>     * @throws NullPointerException if out is null<a name="line.163"></a>
+<span class="sourceLineNo">164</span>     */<a name="line.164"></a>
+<span class="sourceLineNo">165</span>    public Blake3 doFinalize(final byte[] out) {<a name="line.165"></a>
+<span class="sourceLineNo">166</span>        return doFinalize(out, 0, out.length);<a name="line.166"></a>
+<span class="sourceLineNo">167</span>    }<a name="line.167"></a>
+<span class="sourceLineNo">168</span><a name="line.168"></a>
+<span class="sourceLineNo">169</span>    /**<a name="line.169"></a>
+<span class="sourceLineNo">170</span>     * Finalizes an arbitrary number of bytes into the provided output array that depends on the sequence of previously<a name="line.170"></a>
+<span class="sourceLineNo">171</span>     * updated and finalized bytes. Note that this can finalize up to 2&lt;sup&gt;64&lt;/sup&gt; bytes per instance.<a name="line.171"></a>
+<span class="sourceLineNo">172</span>     *<a name="line.172"></a>
+<span class="sourceLineNo">173</span>     * @param out    destination array to finalize bytes into<a name="line.173"></a>
+<span class="sourceLineNo">174</span>     * @param offset where in the array to begin writing bytes to<a name="line.174"></a>
+<span class="sourceLineNo">175</span>     * @param length number of bytes to finalize<a name="line.175"></a>
+<span class="sourceLineNo">176</span>     * @return this<a name="line.176"></a>
+<span class="sourceLineNo">177</span>     * @throws NullPointerException      if out is null<a name="line.177"></a>
+<span class="sourceLineNo">178</span>     * @throws IndexOutOfBoundsException if offset or length are negative or if offset + length is greater than the<a name="line.178"></a>
+<span class="sourceLineNo">179</span>     *                                   length of the provided array<a name="line.179"></a>
+<span class="sourceLineNo">180</span>     */<a name="line.180"></a>
+<span class="sourceLineNo">181</span>    public Blake3 doFinalize(final byte[] out, final int offset, final int length) {<a name="line.181"></a>
+<span class="sourceLineNo">182</span>        checkBufferArgs(out, offset, length);<a name="line.182"></a>
+<span class="sourceLineNo">183</span>        engineState.outputHash(out, offset, length);<a name="line.183"></a>
+<span class="sourceLineNo">184</span>        return this;<a name="line.184"></a>
+<span class="sourceLineNo">185</span>    }<a name="line.185"></a>
+<span class="sourceLineNo">186</span><a name="line.186"></a>
+<span class="sourceLineNo">187</span>    /**<a name="line.187"></a>
+<span class="sourceLineNo">188</span>     * Squeezes and returns an arbitrary number of bytes dependent on the sequence of previously absorbed and squeezed bytes.<a name="line.188"></a>
+<span class="sourceLineNo">189</span>     *<a name="line.189"></a>
+<span class="sourceLineNo">190</span>     * @param nrBytes number of bytes to finalize<a name="line.190"></a>
+<span class="sourceLineNo">191</span>     * @return requested number of finalized bytes<a name="line.191"></a>
+<span class="sourceLineNo">192</span>     * @throws IllegalArgumentException if nrBytes is negative<a name="line.192"></a>
+<span class="sourceLineNo">193</span>     */<a name="line.193"></a>
+<span class="sourceLineNo">194</span>    public byte[] doFinalize(final int nrBytes) {<a name="line.194"></a>
+<span class="sourceLineNo">195</span>        if (nrBytes &lt; 0) {<a name="line.195"></a>
+<span class="sourceLineNo">196</span>            throw new IllegalArgumentException("Requested bytes must be non-negative");<a name="line.196"></a>
+<span class="sourceLineNo">197</span>        }<a name="line.197"></a>
+<span class="sourceLineNo">198</span>        final byte[] hash = new byte[nrBytes];<a name="line.198"></a>
+<span class="sourceLineNo">199</span>        doFinalize(hash);<a name="line.199"></a>
+<span class="sourceLineNo">200</span>        return hash;<a name="line.200"></a>
+<span class="sourceLineNo">201</span>    }<a name="line.201"></a>
+<span class="sourceLineNo">202</span><a name="line.202"></a>
+<span class="sourceLineNo">203</span>    /**<a name="line.203"></a>
+<span class="sourceLineNo">204</span>     * Constructs a fresh Blake3 hash function. The instance returned functions as an arbitrary length message digest.<a name="line.204"></a>
+<span class="sourceLineNo">205</span>     *<a name="line.205"></a>
+<span class="sourceLineNo">206</span>     * @return fresh Blake3 instance in hashed mode<a name="line.206"></a>
+<span class="sourceLineNo">207</span>     */<a name="line.207"></a>
+<span class="sourceLineNo">208</span>    public static Blake3 initHash() {<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        return new Blake3(IV, 0);<a name="line.209"></a>
+<span class="sourceLineNo">210</span>    }<a name="line.210"></a>
+<span class="sourceLineNo">211</span><a name="line.211"></a>
+<span class="sourceLineNo">212</span>    /**<a name="line.212"></a>
+<span class="sourceLineNo">213</span>     * Constructs a fresh Blake3 keyed hash function. The instance returned functions as a pseudorandom function (PRF) or as a<a name="line.213"></a>
+<span class="sourceLineNo">214</span>     * message authentication code (MAC).<a name="line.214"></a>
+<span class="sourceLineNo">215</span>     *<a name="line.215"></a>
+<span class="sourceLineNo">216</span>     * @param key 32-byte secret key<a name="line.216"></a>
+<span class="sourceLineNo">217</span>     * @return fresh Blake3 instance in keyed mode using the provided key<a name="line.217"></a>
+<span class="sourceLineNo">218</span>     * @throws NullPointerException     if key is null<a name="line.218"></a>
+<span class="sourceLineNo">219</span>     * @throws IllegalArgumentException if key is not 32 bytes<a name="line.219"></a>
+<span class="sourceLineNo">220</span>     */<a name="line.220"></a>
+<span class="sourceLineNo">221</span>    public static Blake3 initKeyedHash(final byte[] key) {<a name="line.221"></a>
+<span class="sourceLineNo">222</span>        Objects.requireNonNull(key);<a name="line.222"></a>
+<span class="sourceLineNo">223</span>        if (key.length != KEY_LEN) {<a name="line.223"></a>
+<span class="sourceLineNo">224</span>            throw new IllegalArgumentException("Blake3 keys must be 32 bytes");<a name="line.224"></a>
+<span class="sourceLineNo">225</span>        }<a name="line.225"></a>
+<span class="sourceLineNo">226</span>        return new Blake3(unpackInts(key, KEY_INTS), KEYED_HASH);<a name="line.226"></a>
+<span class="sourceLineNo">227</span>    }<a name="line.227"></a>
+<span class="sourceLineNo">228</span><a name="line.228"></a>
+<span class="sourceLineNo">229</span>    /**<a name="line.229"></a>
+<span class="sourceLineNo">230</span>     * Constructs a fresh Blake3 key derivation function using the provided key derivation context byte string.<a name="line.230"></a>
+<span class="sourceLineNo">231</span>     * The instance returned functions as a key-derivation function which can further absorb additional context data<a name="line.231"></a>
+<span class="sourceLineNo">232</span>     * before squeezing derived key data.<a name="line.232"></a>
+<span class="sourceLineNo">233</span>     *<a name="line.233"></a>
+<span class="sourceLineNo">234</span>     * @param kdfContext a globally unique key-derivation context byte string to separate key derivation contexts from each other<a name="line.234"></a>
+<span class="sourceLineNo">235</span>     * @return fresh Blake3 instance in key derivation mode<a name="line.235"></a>
+<span class="sourceLineNo">236</span>     * @throws NullPointerException if kdfContext is null<a name="line.236"></a>
+<span class="sourceLineNo">237</span>     */<a name="line.237"></a>
+<span class="sourceLineNo">238</span>    public static Blake3 initKeyDerivationFunction(final byte[] kdfContext) {<a name="line.238"></a>
+<span class="sourceLineNo">239</span>        Objects.requireNonNull(kdfContext);<a name="line.239"></a>
+<span class="sourceLineNo">240</span>        final EngineState kdf = new EngineState(IV, DERIVE_KEY_CONTEXT);<a name="line.240"></a>
+<span class="sourceLineNo">241</span>        kdf.inputData(kdfContext, 0, kdfContext.length);<a name="line.241"></a>
+<span class="sourceLineNo">242</span>        final byte[] key = new byte[KEY_LEN];<a name="line.242"></a>
+<span class="sourceLineNo">243</span>        kdf.outputHash(key, 0, key.length);<a name="line.243"></a>
+<span class="sourceLineNo">244</span>        return new Blake3(unpackInts(key, KEY_INTS), DERIVE_KEY_MATERIAL);<a name="line.244"></a>
+<span class="sourceLineNo">245</span>    }<a name="line.245"></a>
+<span class="sourceLineNo">246</span><a name="line.246"></a>
+<span class="sourceLineNo">247</span>    /**<a name="line.247"></a>
+<span class="sourceLineNo">248</span>     * Calculates the Blake3 hash of the provided data.<a name="line.248"></a>
+<span class="sourceLineNo">249</span>     *<a name="line.249"></a>
+<span class="sourceLineNo">250</span>     * @param data source array to absorb data from<a name="line.250"></a>
+<span class="sourceLineNo">251</span>     * @return 32-byte hash squeezed from the provided data<a name="line.251"></a>
+<span class="sourceLineNo">252</span>     * @throws NullPointerException if data is null<a name="line.252"></a>
+<span class="sourceLineNo">253</span>     */<a name="line.253"></a>
+<span class="sourceLineNo">254</span>    public static byte[] hash(final byte[] data) {<a name="line.254"></a>
+<span class="sourceLineNo">255</span>        return Blake3.initHash().update(data).doFinalize(OUT_LEN);<a name="line.255"></a>
+<span class="sourceLineNo">256</span>    }<a name="line.256"></a>
+<span class="sourceLineNo">257</span><a name="line.257"></a>
+<span class="sourceLineNo">258</span>    /**<a name="line.258"></a>
+<span class="sourceLineNo">259</span>     * Calculates the Blake3 keyed hash (MAC) of the provided data.<a name="line.259"></a>
+<span class="sourceLineNo">260</span>     *<a name="line.260"></a>
+<span class="sourceLineNo">261</span>     * @param key  32-byte secret key<a name="line.261"></a>
+<span class="sourceLineNo">262</span>     * @param data source array to absorb data from<a name="line.262"></a>
+<span class="sourceLineNo">263</span>     * @return 32-byte mac squeezed from the provided data<a name="line.263"></a>
+<span class="sourceLineNo">264</span>     * @throws NullPointerException if key or data are null<a name="line.264"></a>
+<span class="sourceLineNo">265</span>     */<a name="line.265"></a>
+<span class="sourceLineNo">266</span>    public static byte[] keyedHash(final byte[] key, final byte[] data) {<a name="line.266"></a>
+<span class="sourceLineNo">267</span>        return Blake3.initKeyedHash(key).update(data).doFinalize(OUT_LEN);<a name="line.267"></a>
+<span class="sourceLineNo">268</span>    }<a name="line.268"></a>
+<span class="sourceLineNo">269</span><a name="line.269"></a>
+<span class="sourceLineNo">270</span>    private static void checkBufferArgs(final byte[] buffer, final int offset, final int length) {<a name="line.270"></a>
+<span class="sourceLineNo">271</span>        Objects.requireNonNull(buffer);<a name="line.271"></a>
+<span class="sourceLineNo">272</span>        if (offset &lt; 0) {<a name="line.272"></a>
+<span class="sourceLineNo">273</span>            throw new IndexOutOfBoundsException("Offset must be non-negative");<a name="line.273"></a>
+<span class="sourceLineNo">274</span>        }<a name="line.274"></a>
+<span class="sourceLineNo">275</span>        if (length &lt; 0) {<a name="line.275"></a>
+<span class="sourceLineNo">276</span>            throw new IndexOutOfBoundsException("Length must be non-negative");<a name="line.276"></a>
+<span class="sourceLineNo">277</span>        }<a name="line.277"></a>
+<span class="sourceLineNo">278</span>        final int bufferLength = buffer.length;<a name="line.278"></a>
+<span class="sourceLineNo">279</span>        if (offset &gt; bufferLength - length) {<a name="line.279"></a>
+<span class="sourceLineNo">280</span>            throw new IndexOutOfBoundsException(<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                    "Offset " + offset + " and length " + length + " out of bounds with buffer length " + bufferLength);<a name="line.281"></a>
+<span class="sourceLineNo">282</span>        }<a name="line.282"></a>
+<span class="sourceLineNo">283</span>    }<a name="line.283"></a>
+<span class="sourceLineNo">284</span><a name="line.284"></a>
+<span class="sourceLineNo">285</span>    private static void packInt(final int value, final byte[] dst, final int off, final int len) {<a name="line.285"></a>
+<span class="sourceLineNo">286</span>        for (int i = 0; i &lt; len; i++) {<a name="line.286"></a>
+<span class="sourceLineNo">287</span>            dst[off + i] = (byte) (value &gt;&gt;&gt; i * Byte.SIZE);<a name="line.287"></a>
+<span class="sourceLineNo">288</span>        }<a name="line.288"></a>
+<span class="sourceLineNo">289</span>    }<a name="line.289"></a>
+<span class="sourceLineNo">290</span><a name="line.290"></a>
+<span class="sourceLineNo">291</span>    private static int unpackInt(final byte[] buf, final int off) {<a name="line.291"></a>
+<span class="sourceLineNo">292</span>        return buf[off] &amp; 0xFF | (buf[off + 1] &amp; 0xFF) &lt;&lt; 8 | (buf[off + 2] &amp; 0xFF) &lt;&lt; 16 | (buf[off + 3] &amp; 0xFF) &lt;&lt; 24;<a name="line.292"></a>
+<span class="sourceLineNo">293</span>    }<a name="line.293"></a>
+<span class="sourceLineNo">294</span><a name="line.294"></a>
+<span class="sourceLineNo">295</span>    private static int[] unpackInts(final byte[] buf, final int nrInts) {<a name="line.295"></a>
+<span class="sourceLineNo">296</span>        final int[] values = new int[nrInts];<a name="line.296"></a>
+<span class="sourceLineNo">297</span>        for (int i = 0, off = 0; i &lt; nrInts; i++, off += Integer.BYTES) {<a name="line.297"></a>
+<span class="sourceLineNo">298</span>            values[i] = unpackInt(buf, off);<a name="line.298"></a>
+<span class="sourceLineNo">299</span>        }<a name="line.299"></a>
+<span class="sourceLineNo">300</span>        return values;<a name="line.300"></a>
+<span class="sourceLineNo">301</span>    }<a name="line.301"></a>
+<span class="sourceLineNo">302</span><a name="line.302"></a>
+<span class="sourceLineNo">303</span>    /**<a name="line.303"></a>
+<span class="sourceLineNo">304</span>     * The mixing function, G, which mixes either a column or a diagonal.<a name="line.304"></a>
+<span class="sourceLineNo">305</span>     */<a name="line.305"></a>
+<span class="sourceLineNo">306</span>    private static void g(<a name="line.306"></a>
+<span class="sourceLineNo">307</span>            final int[] state, final int a, final int b, final int c, final int d, final int mx, final int my) {<a name="line.307"></a>
+<span class="sourceLineNo">308</span>        state[a] += state[b] + mx;<a name="line.308"></a>
+<span class="sourceLineNo">309</span>        state[d] = Integer.rotateRight(state[d] ^ state[a], 16);<a name="line.309"></a>
+<span class="sourceLineNo">310</span>        state[c] += state[d];<a name="line.310"></a>
+<span class="sourceLineNo">311</span>        state[b] = Integer.rotateRight(state[b] ^ state[c], 12);<a name="line.311"></a>
+<span class="sourceLineNo">312</span>        state[a] += state[b] + my;<a name="line.312"></a>
+<span class="sourceLineNo">313</span>        state[d] = Integer.rotateRight(state[d] ^ state[a], 8);<a name="line.313"></a>
+<span class="sourceLineNo">314</span>        state[c] += state[d];<a name="line.314"></a>
+<span class="sourceLineNo">315</span>        state[b] = Integer.rotateRight(state[b] ^ state[c], 7);<a name="line.315"></a>
+<span class="sourceLineNo">316</span>    }<a name="line.316"></a>
+<span class="sourceLineNo">317</span><a name="line.317"></a>
+<span class="sourceLineNo">318</span>    private static void round(final int[] state, final int[] msg, final byte[] schedule) {<a name="line.318"></a>
+<span class="sourceLineNo">319</span>        // Mix the columns.<a name="line.319"></a>
+<span class="sourceLineNo">320</span>        g(state, 0, 4, 8, 12, msg[schedule[0]], msg[schedule[1]]);<a name="line.320"></a>
+<span class="sourceLineNo">321</span>        g(state, 1, 5, 9, 13, msg[schedule[2]], msg[schedule[3]]);<a name="line.321"></a>
+<span class="sourceLineNo">322</span>        g(state, 2, 6, 10, 14, msg[schedule[4]], msg[schedule[5]]);<a name="line.322"></a>
+<span class="sourceLineNo">323</span>        g(state, 3, 7, 11, 15, msg[schedule[6]], msg[schedule[7]]);<a name="line.323"></a>
+<span class="sourceLineNo">324</span><a name="line.324"></a>
+<span class="sourceLineNo">325</span>        // Mix the diagonals.<a name="line.325"></a>
+<span class="sourceLineNo">326</span>        g(state, 0, 5, 10, 15, msg[schedule[8]], msg[schedule[9]]);<a name="line.326"></a>
+<span class="sourceLineNo">327</span>        g(state, 1, 6, 11, 12, msg[schedule[10]], msg[schedule[11]]);<a name="line.327"></a>
+<span class="sourceLineNo">328</span>        g(state, 2, 7, 8, 13, msg[schedule[12]], msg[schedule[13]]);<a name="line.328"></a>
+<span class="sourceLineNo">329</span>        g(state, 3, 4, 9, 14, msg[schedule[14]], msg[schedule[15]]);<a name="line.329"></a>
+<span class="sourceLineNo">330</span>    }<a name="line.330"></a>
+<span class="sourceLineNo">331</span><a name="line.331"></a>
+<span class="sourceLineNo">332</span>    private static int[] compress(<a name="line.332"></a>
+<span class="sourceLineNo">333</span>            final int[] chainingValue, final int[] blockWords, final int blockLength, final long counter,<a name="line.333"></a>
+<span class="sourceLineNo">334</span>            final int flags) {<a name="line.334"></a>
+<span class="sourceLineNo">335</span>        final int[] state = Arrays.copyOf(chainingValue, BLOCK_INTS);<a name="line.335"></a>
+<span class="sourceLineNo">336</span>        System.arraycopy(IV, 0, state, 8, 4);<a name="line.336"></a>
+<span class="sourceLineNo">337</span>        state[12] = (int) counter;<a name="line.337"></a>
+<span class="sourceLineNo">338</span>        state[13] = (int) (counter &gt;&gt; Integer.SIZE);<a name="line.338"></a>
+<span class="sourceLineNo">339</span>        state[14] = blockLength;<a name="line.339"></a>
+<span class="sourceLineNo">340</span>        state[15] = flags;<a name="line.340"></a>
+<span class="sourceLineNo">341</span>        for (int i = 0; i &lt; 7; i++) {<a name="line.341"></a>
+<span class="sourceLineNo">342</span>            final byte[] schedule = MSG_SCHEDULE[i];<a name="line.342"></a>
+<span class="sourceLineNo">343</span>            round(state, blockWords, schedule);<a name="line.343"></a>
+<span class="sourceLineNo">344</span>        }<a name="line.344"></a>
+<span class="sourceLineNo">345</span>        for (int i = 0; i &lt; state.length / 2; i++) {<a name="line.345"></a>
+<span class="sourceLineNo">346</span>            state[i] ^= state[i + 8];<a name="line.346"></a>
+<span class="sourceLineNo">347</span>            state[i + 8] ^= chainingValue[i];<a name="line.347"></a>
+<span class="sourceLineNo">348</span>        }<a name="line.348"></a>
+<span class="sourceLineNo">349</span>        return state;<a name="line.349"></a>
+<span class="sourceLineNo">350</span>    }<a name="line.350"></a>
+<span class="sourceLineNo">351</span><a name="line.351"></a>
+<span class="sourceLineNo">352</span>    private static Output parentOutput(<a name="line.352"></a>
+<span class="sourceLineNo">353</span>            final int[] leftChildCV, final int[] rightChildCV, final int[] key, final int flags) {<a name="line.353"></a>
+<span class="sourceLineNo">354</span>        final int[] blockWords = Arrays.copyOf(leftChildCV, BLOCK_INTS);<a name="line.354"></a>
+<span class="sourceLineNo">355</span>        System.arraycopy(rightChildCV, 0, blockWords, 8, CHAINING_VALUE_INTS);<a name="line.355"></a>
+<span class="sourceLineNo">356</span>        return new Output(key.clone(), blockWords, 0, BLOCK_LEN, flags | PARENT);<a name="line.356"></a>
+<span class="sourceLineNo">357</span>    }<a name="line.357"></a>
+<span class="sourceLineNo">358</span><a name="line.358"></a>
+<span class="sourceLineNo">359</span>    private static int[] parentChainingValue(<a name="line.359"></a>
+<span class="sourceLineNo">360</span>            final int[] leftChildCV, final int[] rightChildCV, final int[] key, final int flags) {<a name="line.360"></a>
+<span class="sourceLineNo">361</span>        return parentOutput(leftChildCV, rightChildCV, key, flags).chainingValue();<a name="line.361"></a>
+<span class="sourceLineNo">362</span>    }<a name="line.362"></a>
+<span class="sourceLineNo">363</span><a name="line.363"></a>
+<span class="sourceLineNo">364</span>    /**<a name="line.364"></a>
+<span class="sourceLineNo">365</span>     * Represents the state just prior to either producing an eight word chaining value or any number of output bytes<a name="line.365"></a>
+<span class="sourceLineNo">366</span>     * when the ROOT flag is set.<a name="line.366"></a>
+<span class="sourceLineNo">367</span>     */<a name="line.367"></a>
+<span class="sourceLineNo">368</span>    private static class Output {<a name="line.368"></a>
+<span class="sourceLineNo">369</span>        private final int[] inputChainingValue;<a name="line.369"></a>
+<span class="sourceLineNo">370</span>        private final int[] blockWords;<a name="line.370"></a>
+<span class="sourceLineNo">371</span>        private final long counter;<a name="line.371"></a>
+<span class="sourceLineNo">372</span>        private final int blockLength;<a name="line.372"></a>
+<span class="sourceLineNo">373</span>        private final int flags;<a name="line.373"></a>
+<span class="sourceLineNo">374</span><a name="line.374"></a>
+<span class="sourceLineNo">375</span>        private Output(<a name="line.375"></a>
+<span class="sourceLineNo">376</span>                final int[] inputChainingValue, final int[] blockWords, final long counter, final int blockLength,<a name="line.376"></a>
+<span class="sourceLineNo">377</span>                final int flags) {<a name="line.377"></a>
+<span class="sourceLineNo">378</span>            this.inputChainingValue = inputChainingValue;<a name="line.378"></a>
+<span class="sourceLineNo">379</span>            this.blockWords = blockWords;<a name="line.379"></a>
+<span class="sourceLineNo">380</span>            this.counter = counter;<a name="line.380"></a>
+<span class="sourceLineNo">381</span>            this.blockLength = blockLength;<a name="line.381"></a>
+<span class="sourceLineNo">382</span>            this.flags = flags;<a name="line.382"></a>
+<span class="sourceLineNo">383</span>        }<a name="line.383"></a>
+<span class="sourceLineNo">384</span><a name="line.384"></a>
+<span class="sourceLineNo">385</span>        private int[] chainingValue() {<a name="line.385"></a>
+<span class="sourceLineNo">386</span>            return Arrays<a name="line.386"></a>
+<span class="sourceLineNo">387</span>                    .copyOf(compress(inputChainingValue, blockWords, blockLength, counter, flags), CHAINING_VALUE_INTS);<a name="line.387"></a>
+<span class="sourceLineNo">388</span>        }<a name="line.388"></a>
+<span class="sourceLineNo">389</span><a name="line.389"></a>
+<span class="sourceLineNo">390</span>        private void rootOutputBytes(final byte[] out, int offset, int length) {<a name="line.390"></a>
+<span class="sourceLineNo">391</span>            int outputBlockCounter = 0;<a name="line.391"></a>
+<span class="sourceLineNo">392</span>            while (length &gt; 0) {<a name="line.392"></a>
+<span class="sourceLineNo">393</span>                int chunkLength = Math.min(OUT_LEN * 2, length);<a name="line.393"></a>
+<span class="sourceLineNo">394</span>                length -= chunkLength;<a name="line.394"></a>
+<span class="sourceLineNo">395</span>                final int[] words =<a name="line.395"></a>
+<span class="sourceLineNo">396</span>                        compress(inputChainingValue, blockWords, blockLength, outputBlockCounter++, flags | ROOT);<a name="line.396"></a>
+<span class="sourceLineNo">397</span>                int wordCounter = 0;<a name="line.397"></a>
+<span class="sourceLineNo">398</span>                while (chunkLength &gt; 0) {<a name="line.398"></a>
+<span class="sourceLineNo">399</span>                    final int wordLength = Math.min(Integer.BYTES, chunkLength);<a name="line.399"></a>
+<span class="sourceLineNo">400</span>                    packInt(words[wordCounter++], out, offset, wordLength);<a name="line.400"></a>
+<span class="sourceLineNo">401</span>                    offset += wordLength;<a name="line.401"></a>
+<span class="sourceLineNo">402</span>                    chunkLength -= wordLength;<a name="line.402"></a>
+<span class="sourceLineNo">403</span>                }<a name="line.403"></a>
+<span class="sourceLineNo">404</span>            }<a name="line.404"></a>
+<span class="sourceLineNo">405</span>        }<a name="line.405"></a>
+<span class="sourceLineNo">406</span>    }<a name="line.406"></a>
+<span class="sourceLineNo">407</span><a name="line.407"></a>
+<span class="sourceLineNo">408</span>    private static class ChunkState {<a name="line.408"></a>
+<span class="sourceLineNo">409</span>        private int[] chainingValue;<a name="line.409"></a>
+<span class="sourceLineNo">410</span>        private final long chunkCounter;<a name="line.410"></a>
+<span class="sourceLineNo">411</span>        private final int flags;<a name="line.411"></a>
+<span class="sourceLineNo">412</span><a name="line.412"></a>
+<span class="sourceLineNo">413</span>        private final byte[] block = new byte[BLOCK_LEN];<a name="line.413"></a>
+<span class="sourceLineNo">414</span>        private int blockLength;<a name="line.414"></a>
+<span class="sourceLineNo">415</span>        private int blocksCompressed;<a name="line.415"></a>
+<span class="sourceLineNo">416</span><a name="line.416"></a>
+<span class="sourceLineNo">417</span>        private ChunkState(final int[] key, final long chunkCounter, final int flags) {<a name="line.417"></a>
+<span class="sourceLineNo">418</span>            chainingValue = key;<a name="line.418"></a>
+<span class="sourceLineNo">419</span>            this.chunkCounter = chunkCounter;<a name="line.419"></a>
+<span class="sourceLineNo">420</span>            this.flags = flags;<a name="line.420"></a>
+<span class="sourceLineNo">421</span>        }<a name="line.421"></a>
+<span class="sourceLineNo">422</span><a name="line.422"></a>
+<span class="sourceLineNo">423</span>        private int length() {<a name="line.423"></a>
+<span class="sourceLineNo">424</span>            return BLOCK_LEN * blocksCompressed + blockLength;<a name="line.424"></a>
+<span class="sourceLineNo">425</span>        }<a name="line.425"></a>
+<span class="sourceLineNo">426</span><a name="line.426"></a>
+<span class="sourceLineNo">427</span>        private int startFlag() {<a name="line.427"></a>
+<span class="sourceLineNo">428</span>            return blocksCompressed == 0 ? CHUNK_START : 0;<a name="line.428"></a>
+<span class="sourceLineNo">429</span>        }<a name="line.429"></a>
+<span class="sourceLineNo">430</span><a name="line.430"></a>
+<span class="sourceLineNo">431</span>        private void update(final byte[] input, int offset, int length) {<a name="line.431"></a>
+<span class="sourceLineNo">432</span>            while (length &gt; 0) {<a name="line.432"></a>
+<span class="sourceLineNo">433</span>                if (blockLength == BLOCK_LEN) {<a name="line.433"></a>
+<span class="sourceLineNo">434</span>                    // If the block buffer is full, compress it and clear it. More<a name="line.434"></a>
+<span class="sourceLineNo">435</span>                    // input is coming, so this compression is not CHUNK_END.<a name="line.435"></a>
+<span class="sourceLineNo">436</span>                    final int[] blockWords = unpackInts(block, BLOCK_INTS);<a name="line.436"></a>
+<span class="sourceLineNo">437</span>                    chainingValue = Arrays.copyOf(<a name="line.437"></a>
+<span class="sourceLineNo">438</span>                            compress(chainingValue, blockWords, BLOCK_LEN, chunkCounter, flags | startFlag()),<a name="line.438"></a>
+<span class="sourceLineNo">439</span>                            CHAINING_VALUE_INTS);<a name="line.439"></a>
+<span class="sourceLineNo">440</span>                    blocksCompressed++;<a name="line.440"></a>
+<span class="sourceLineNo">441</span>                    blockLength = 0;<a name="line.441"></a>
+<span class="sourceLineNo">442</span>                    Arrays.fill(block, (byte) 0);<a name="line.442"></a>
+<span class="sourceLineNo">443</span>                }<a name="line.443"></a>
+<span class="sourceLineNo">444</span><a name="line.444"></a>
+<span class="sourceLineNo">445</span>                final int want = BLOCK_LEN - blockLength;<a name="line.445"></a>
+<span class="sourceLineNo">446</span>                final int take = Math.min(want, length);<a name="line.446"></a>
+<span class="sourceLineNo">447</span>                System.arraycopy(input, offset, block, blockLength, take);<a name="line.447"></a>
+<span class="sourceLineNo">448</span>                blockLength += take;<a name="line.448"></a>
+<span class="sourceLineNo">449</span>                offset += take;<a name="line.449"></a>
+<span class="sourceLineNo">450</span>                length -= take;<a name="line.450"></a>
+<span class="sourceLineNo">451</span>            }<a name="line.451"></a>
+<span class="sourceLineNo">452</span>        }<a name="line.452"></a>
+<span class="sourceLineNo">453</span><a name="line.453"></a>
+<span class="sourceLineNo">454</span>        private Output output() {<a name="line.454"></a>
+<span class="sourceLineNo">455</span>            final int[] blockWords = unpackInts(block, BLOCK_INTS);<a name="line.455"></a>
+<span class="sourceLineNo">456</span>            final int outputFlags = flags | startFlag() | CHUNK_END;<a name="line.456"></a>
+<span class="sourceLineNo">457</span>            return new Output(chainingValue, blockWords, chunkCounter, blockLength, outputFlags);<a name="line.457"></a>
+<span class="sourceLineNo">458</span>        }<a name="line.458"></a>
+<span class="sourceLineNo">459</span>    }<a name="line.459"></a>
+<span class="sourceLineNo">460</span><a name="line.460"></a>
+<span class="sourceLineNo">461</span>    private static class EngineState {<a name="line.461"></a>
+<span class="sourceLineNo">462</span>        private final int[] key;<a name="line.462"></a>
+<span class="sourceLineNo">463</span>        private final int flags;<a name="line.463"></a>
+<span class="sourceLineNo">464</span>        // Space for 54 subtree chaining values: 2^54 * CHUNK_LEN = 2^64<a name="line.464"></a>
+<span class="sourceLineNo">465</span>        // No more than 54 entries can ever be added to this stack (after updating 2^64 bytes and not finalizing any)<a name="line.465"></a>
+<span class="sourceLineNo">466</span>        // so we preallocate the stack here. This can be smaller in environments where the data limit is expected to<a name="line.466"></a>
+<span class="sourceLineNo">467</span>        // be much lower.<a name="line.467"></a>
+<span class="sourceLineNo">468</span>        private final int[][] cvStack = new int[54][];<a name="line.468"></a>
+<span class="sourceLineNo">469</span>        private int stackLen;<a name="line.469"></a>
+<span class="sourceLineNo">470</span>        private ChunkState state;<a name="line.470"></a>
+<span class="sourceLineNo">471</span><a name="line.471"></a>
+<span class="sourceLineNo">472</span>        private EngineState(final int[] key, final int flags) {<a name="line.472"></a>
+<span class="sourceLineNo">473</span>            this.key = key;<a name="line.473"></a>
+<span class="sourceLineNo">474</span>            this.flags = flags;<a name="line.474"></a>
+<span class="sourceLineNo">475</span>            state = new ChunkState(key, 0, flags);<a name="line.475"></a>
+<span class="sourceLineNo">476</span>        }<a name="line.476"></a>
+<span class="sourceLineNo">477</span><a name="line.477"></a>
+<span class="sourceLineNo">478</span>        private void inputData(final byte[] in, int offset, int length) {<a name="line.478"></a>
+<span class="sourceLineNo">479</span>            while (length &gt; 0) {<a name="line.479"></a>
+<span class="sourceLineNo">480</span>                // If the current chunk is complete, finalize it and reset the<a name="line.480"></a>
+<span class="sourceLineNo">481</span>                // chunk state. More input is coming, so this chunk is not ROOT.<a name="line.481"></a>
+<span class="sourceLineNo">482</span>                if (state.length() == CHUNK_LEN) {<a name="line.482"></a>
+<span class="sourceLineNo">483</span>                    final int[] chunkCV = state.output().chainingValue();<a name="line.483"></a>
+<span class="sourceLineNo">484</span>                    final long totalChunks = state.chunkCounter + 1;<a name="line.484"></a>
+<span class="sourceLineNo">485</span>                    addChunkCV(chunkCV, totalChunks);<a name="line.485"></a>
+<span class="sourceLineNo">486</span>                    state = new ChunkState(key, totalChunks, flags);<a name="line.486"></a>
+<span class="sourceLineNo">487</span>                }<a name="line.487"></a>
+<span class="sourceLineNo">488</span><a name="line.488"></a>
+<span class="sourceLineNo">489</span>                // Compress input bytes into the current chunk state.<a name="line.489"></a>
+<span class="sourceLineNo">490</span>                final int want = CHUNK_LEN - state.length();<a name="line.490"></a>
+<span class="sourceLineNo">491</span>                final int take = Math.min(want, length);<a name="line.491"></a>
+<span class="sourceLineNo">492</span>                state.update(in, offset, take);<a name="line.492"></a>
+<span class="sourceLineNo">493</span>                offset += take;<a name="line.493"></a>
+<span class="sourceLineNo">494</span>                length -= take;<a name="line.494"></a>
+<span class="sourceLineNo">495</span>            }<a name="line.495"></a>
+<span class="sourceLineNo">496</span>        }<a name="line.496"></a>
+<span class="sourceLineNo">497</span><a name="line.497"></a>
+<span class="sourceLineNo">498</span>        private void outputHash(final byte[] out, final int offset, final int length) {<a name="line.498"></a>
+<span class="sourceLineNo">499</span>            // Starting with the Output from the current chunk, compute all the<a name="line.499"></a>
+<span class="sourceLineNo">500</span>            // parent chaining values along the right edge of the tree, until we<a name="line.500"></a>
+<span class="sourceLineNo">501</span>            // have the root Output.<a name="line.501"></a>
+<span class="sourceLineNo">502</span>            Output output = state.output();<a name="line.502"></a>
+<span class="sourceLineNo">503</span>            int parentNodesRemaining = stackLen;<a name="line.503"></a>
+<span class="sourceLineNo">504</span>            while (parentNodesRemaining-- &gt; 0) {<a name="line.504"></a>
+<span class="sourceLineNo">505</span>                final int[] parentCV = cvStack[parentNodesRemaining];<a name="line.505"></a>
+<span class="sourceLineNo">506</span>                output = parentOutput(parentCV, output.chainingValue(), key, flags);<a name="line.506"></a>
+<span class="sourceLineNo">507</span>            }<a name="line.507"></a>
+<span class="sourceLineNo">508</span>            output.rootOutputBytes(out, offset, length);<a name="line.508"></a>
+<span class="sourceLineNo">509</span>        }<a name="line.509"></a>
+<span class="sourceLineNo">510</span><a name="line.510"></a>
+<span class="sourceLineNo">511</span>        private void reset() {<a name="line.511"></a>
+<span class="sourceLineNo">512</span>            stackLen = 0;<a name="line.512"></a>
+<span class="sourceLineNo">513</span>            Arrays.fill(cvStack, null);<a name="line.513"></a>
+<span class="sourceLineNo">514</span>            state = new ChunkState(key, 0, flags);<a name="line.514"></a>
+<span class="sourceLineNo">515</span>        }<a name="line.515"></a>
+<span class="sourceLineNo">516</span><a name="line.516"></a>
+<span class="sourceLineNo">517</span>        // Section 5.1.2 of the BLAKE3 spec explains this algorithm in more detail.<a name="line.517"></a>
+<span class="sourceLineNo">518</span>        private void addChunkCV(final int[] firstCV, final long totalChunks) {<a name="line.518"></a>
+<span class="sourceLineNo">519</span>            // This chunk might complete some subtrees. For each completed subtree,<a name="line.519"></a>
+<span class="sourceLineNo">520</span>            // its left child will be the current top entry in the CV stack, and<a name="line.520"></a>
+<span class="sourceLineNo">521</span>            // its right child will be the current value of `newCV`. Pop each left<a name="line.521"></a>
+<span class="sourceLineNo">522</span>            // child off the stack, merge it with `newCV`, and overwrite `newCV`<a name="line.522"></a>
+<span class="sourceLineNo">523</span>            // with the result. After all these merges, push the final value of<a name="line.523"></a>
+<span class="sourceLineNo">524</span>            // `newCV` onto the stack. The number of completed subtrees is given<a name="line.524"></a>
+<span class="sourceLineNo">525</span>            // by the number of trailing 0-bits in the new total number of chunks.<a name="line.525"></a>
+<span class="sourceLineNo">526</span>            int[] newCV = firstCV;<a name="line.526"></a>
+<span class="sourceLineNo">527</span>            long chunkCounter = totalChunks;<a name="line.527"></a>
+<span class="sourceLineNo">528</span>            while ((chunkCounter &amp; 1) == 0) {<a name="line.528"></a>
+<span class="sourceLineNo">529</span>                newCV = parentChainingValue(popCV(), newCV, key, flags);<a name="line.529"></a>
+<span class="sourceLineNo">530</span>                chunkCounter &gt;&gt;= 1;<a name="line.530"></a>
+<span class="sourceLineNo">531</span>            }<a name="line.531"></a>
+<span class="sourceLineNo">532</span>            pushCV(newCV);<a name="line.532"></a>
+<span class="sourceLineNo">533</span>        }<a name="line.533"></a>
+<span class="sourceLineNo">534</span><a name="line.534"></a>
+<span class="sourceLineNo">535</span>        private void pushCV(final int[] cv) {<a name="line.535"></a>
+<span class="sourceLineNo">536</span>            cvStack[stackLen++] = cv;<a name="line.536"></a>
+<span class="sourceLineNo">537</span>        }<a name="line.537"></a>
+<span class="sourceLineNo">538</span><a name="line.538"></a>
+<span class="sourceLineNo">539</span>        private int[] popCV() {<a name="line.539"></a>
+<span class="sourceLineNo">540</span>            return cvStack[--stackLen];<a name="line.540"></a>
+<span class="sourceLineNo">541</span>        }<a name="line.541"></a>
+<span class="sourceLineNo">542</span>    }<a name="line.542"></a>
+<span class="sourceLineNo">543</span><a name="line.543"></a>
+<span class="sourceLineNo">544</span>}<a name="line.544"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -5,19 +5,21 @@ import org.apache.commons.codec.language.Soundex;
 import java.nio.file.Files;
 import java.util.*;
 import java.io.*;
+
 public class SearchEngineFunctions {
-    public static Map<String,List<String>> map;
+    public static Map<String, List<String>> map;
     private Soundex soundex;
 
-    public SearchEngineFunctions(){
+    public SearchEngineFunctions() {
         map = new HashMap<>();
         soundex = new Soundex();
 
     }
-    private List<String> everyKey(String str){
+
+    private List<String> everyKey(String str) {
         String[] words = str.trim().split("\\s+");
         List<String> allWords = new ArrayList<>();
-        for (String s : words){
+        for (String s : words) {
             allWords.add(s.toLowerCase());
         }
         return allWords;
@@ -58,23 +60,47 @@ public class SearchEngineFunctions {
             }
         }
     }
-    public List<String> findDoc(String word){
+
+    public List<String> findDoc(String word) {
         return map.get(word);
     }
-    public List<String> findSimilarDocs(String str){
+
+    public List<String> findSimilarDocs(String str) {
         List<String> docs = new ArrayList<>();
         String query = soundex.encode(str.toLowerCase());
-        for (String word : map.keySet()){
+        for (String word : map.keySet()) {
             String s = soundex.encode(word.toLowerCase());
 
-            if (query.equals(s)){
+            if (query.equals(s)) {
                 docs.addAll(map.get(word));
             }
         }
         return docs;
     }
 
+    public List<String> plusSearch(String first, String second) {
+        List<String> list1 = findDoc(first);
+        List<String> list2 = findDoc(second);
+        List<String> listCommon = new ArrayList<>(list2);
+        listCommon.retainAll(list1);
+        return listCommon;
+    }
 
+    public List<String> notCommon(String first, String second) {
+        List<String> list1 = findDoc(first);
+        List<String> list2 = findDoc(second);
+        list1.removeAll(list2);
+        return list1;
+    }
+
+    public List<String> allCommon(String first, String second) {
+        List<String> list = new ArrayList<>();
+        list.addAll(plusSearch(first, second));
+        list.addAll(notCommon(first, second));
+        return list;
+
+
+    }
 
 
 }
