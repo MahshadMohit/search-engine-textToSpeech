@@ -8,7 +8,7 @@ import java.io.*;
 
 public class SearchEngineFunctions {
     public static Map<String, List<String>> map;
-    private Soundex soundex;
+    private final Soundex soundex;
 
     public SearchEngineFunctions() {
         map = new HashMap<>();
