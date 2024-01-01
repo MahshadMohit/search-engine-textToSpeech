@@ -28,17 +28,20 @@
             <Reflection bottomOpacity="0.12" fraction="0.47" topOpacity="1.0" />
          </effect>
       </Rectangle>
-      <TextField fx:id="textField" layoutX="128.0" layoutY="300.0" prefHeight="25.0" prefWidth="536.0" style="-fx-background-color: TRANSPARENT;">
+      <TextField fx:id="textField" layoutX="128.0" layoutY="300.0" onDragEntered="#setGoBtn" prefHeight="25.0" prefWidth="536.0" style="-fx-background-color: TRANSPARENT;">
          <cursor>
             <Cursor fx:constant="TEXT" />
          </cursor>
+         <font>
+            <Font name="Arial" size="12.0" />
+         </font>
       </TextField>
       <Text fill="#00000068" layoutX="282.0" layoutY="285.0" strokeType="OUTSIDE" strokeWidth="0.0" text="search in all around the world!">
          <font>
             <Font name="Berlin Sans FB" size="18.0" />
          </font>
       </Text>
-      <Button fx:id="goBtn" layoutX="663.0" layoutY="296.0" mnemonicParsing="false" style="-fx-background-color: TRANSPARENT;" text="Go!" onAction="#setGoBtn" textFill="#376dfe">
+      <Button fx:id="goBtn" layoutX="663.0" layoutY="296.0" mnemonicParsing="false" onAction="#setGoBtn" style="-fx-background-color: TRANSPARENT;" text="Go!" textFill="#376dfe">
          <font>
             <Font name="Berlin Sans FB" size="18.0" />
          </font>

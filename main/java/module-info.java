@@ -3,6 +3,7 @@ module com.example.searchengineproj {
     requires javafx.fxml;
     //requires org.apache.commons.codec;
     requires java.sql;
+    requires commons.codec;
 
 
     opens com.example.searchengineproj to javafx.fxml;

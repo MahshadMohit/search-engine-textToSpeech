@@ -4,8 +4,8 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.stage.*;
+
 
 import java.io.IOException;
 
@@ -25,7 +25,7 @@ public class searchEngineApplication extends Application {
     public static void main(String[] args) {
         launch();
         SearchEngineFunctions sf = new SearchEngineFunctions();
-        sf.buildFile("C:\\Users\\asus\\IdeaProjects\\searchEngineProj\\src\\EnglishData");
+        sf.buildFile();
 
 
     }
