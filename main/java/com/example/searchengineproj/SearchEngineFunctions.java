@@ -68,7 +68,8 @@ public class SearchEngineFunctions {
         }
     }
 
-    public static StringBuilder textOfEeachFile(String nameFile) throws IOException {
+    public static StringBuilder textOfEeachFile(String nameFile) throws IOException
+    {
         StringBuilder str = new StringBuilder();
         File folder = new File("C:\\Users\\asus\\IdeaProjects\\searchEngineProj\\src\\EnglishData");
         File[] files = folder.listFiles();
@@ -106,11 +107,15 @@ public class SearchEngineFunctions {
     }
 
     public List<String> plusSearch(String first, String second) {
-        List<String> list1 = findDoc(first);
-        List<String> list2 = findDoc(second);
-        List<String> listCommon = new ArrayList<>(list2);
-        listCommon.retainAll(list1);
-        return listCommon;
+        List<String> list1 = findSimilarDocs(first);
+        List<String> list2 = findSimilarDocs(second);
+        for (String s : list2) {
+            if (!list1.contains(s)) {
+                list1.add(s);
+            }
+        }
+
+        return list1;
     }
 
     public List<String> notCommon(String first, String second) {

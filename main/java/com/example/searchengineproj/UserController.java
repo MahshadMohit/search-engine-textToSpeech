@@ -13,7 +13,7 @@ public class UserController {
 
     }
 
-    public void register(String username , String password){
+    public static void register(String username , String password){
         User user = new User(username);
         user.setPassword(password);
         user.setProfile(new Image("profile.jpeg"));

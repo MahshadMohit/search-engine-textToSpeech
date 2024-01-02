@@ -16,7 +16,7 @@ public class searchEngineApplication extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 805, 506);
         stage.setTitle("ISearch");
         stage.setScene(scene);
-        //stage.initStyle(StageStyle.TRANSPARENT);
+        stage.setResizable(false);
         stage.getIcons().add(new Image("searchIcon.png"));
         stage.show();
 

@@ -9,6 +9,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.w3c.dom.events.MouseEvent;
@@ -68,16 +70,21 @@ public class SearchPage implements Initializable {
     private int count = 0;
     public SearchEngineFunctions sf = new SearchEngineFunctions();
     public List<String> list;
-    public static StringBuilder sb = new StringBuilder();
-    public static String nameOfFile;
+    public static User user;
 
 
     public void setGoBtn() {
         list = new ArrayList<>(1000);
-        list = sf.findDoc(textField.getText());
-        if (list.isEmpty()) {
-            list = sf.findSimilarDocs(textField.getText());
+        if (textField.getText().contains("+")){
+            String[] arr = textField.getText().split("\\s+");
+            list = sf.plusSearch(arr[0],arr[2]);
+        }else{
+            list = sf.findDoc(textField.getText());
+            if (list.isEmpty()) {
+                list = sf.findSimilarDocs(textField.getText());
+            }
         }
+
         setList(0);
         count++;
 
@@ -109,30 +116,53 @@ public class SearchPage implements Initializable {
 
     }
 
+    public void setBack() {
+        count--;
+        if (count < 0) {
+            count = 0;
+        }
+        setList(count);
+        back.setDisable(false);
+        back.setVisible(true);
+
+
+    }
+
     public void setT1(ActionEvent e) throws IOException {
         EveryPage.str = t11.getText().substring(9);
+        user.getBookmark().add(t11.getText().substring(9));
         setGoEveryPage(e);
     }
-    public void setT111(ActionEvent e) throws IOException{
+
+    public void setT111(ActionEvent e) throws IOException {
         EveryPage.str = t111.getText().substring(9);
+        user.getBookmark().add(t111.getText().substring(9));
         setGoEveryPage(e);
     }
-    public void setT112(ActionEvent e) throws IOException{
+
+    public void setT112(ActionEvent e) throws IOException {
         EveryPage.str = t112.getText().substring(9);
+        user.getBookmark().add(t112.getText().substring(9));
         setGoEveryPage(e);
     }
-    public void setT113(ActionEvent e) throws IOException{
+
+    public void setT113(ActionEvent e) throws IOException {
         EveryPage.str = t113.getText().substring(9);
+        user.getBookmark().add(t113.getText().substring(9));
         setGoEveryPage(e);
     }
-    public void setT114(ActionEvent e)throws IOException{
+
+    public void setT114(ActionEvent e) throws IOException {
         EveryPage.str = t114.getText().substring(9);
+        user.getBookmark().add(t114.getText().substring(9));
         setGoEveryPage(e);
     }
+
 
 
     public void setGoEveryPage(ActionEvent e) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(searchEngineApplication.class.getResource("everyPage.fxml"));
+        EveryPage.user = user;
         Scene scene = new Scene(fxmlLoader.load());
         Stage stage = (Stage) ((Node) e.getSource()).getScene().getWindow();
         stage.setScene(scene);
@@ -144,6 +174,10 @@ public class SearchPage implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         textField.setText(MainPage.str);
         setGoBtn();
+        if (count == 0) {
+            back.setDisable(true);
+        }
+
 
     }
 }

@@ -156,7 +156,7 @@
             <Glow level="0.99" />
          </effect>
       </VBox>
-      <Button fx:id="back" disable="true" layoutX="314.0" layoutY="407.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="42.0" style="-fx-background-color: TRANSPARENT;" text="&lt;" textFill="#376dfe">
+      <Button fx:id="back" layoutX="314.0" layoutY="407.0" mnemonicParsing="false" onAction="#setBack" prefHeight="46.0" prefWidth="42.0" style="-fx-background-color: TRANSPARENT;" text="&lt;" textFill="#376dfe">
          <font>
             <Font name="Berlin Sans FB" size="30.0" />
          </font>

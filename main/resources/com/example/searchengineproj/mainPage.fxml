@@ -11,7 +11,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="506.0" prefWidth="805.0" style="-fx-background-color: #FCFCFC;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.searchengineproj.MainPage">
+<AnchorPane fx:id="pane" prefHeight="506.0" prefWidth="805.0" style="-fx-background-color: #FCFCFC;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.searchengineproj.MainPage">
    <children>
       <ImageView fitHeight="602.0" fitWidth="821.0" layoutX="14.0" layoutY="143.0" opacity="0.24" pickOnBounds="true" preserveRatio="true">
          <image>
@@ -23,12 +23,12 @@
             <Image url="@../../../searchIcon.png" />
          </image>
       </ImageView>
-      <Rectangle arcHeight="30.0" arcWidth="5.0" fill="#d1ecff" height="26.0" layoutX="127.0" layoutY="300.0" stroke="#a19b9b" strokeType="INSIDE" strokeWidth="0.3" width="536.0">
+      <Rectangle fx:id="rec" arcHeight="30.0" arcWidth="5.0" fill="#d1ecff" height="26.0" layoutX="127.0" layoutY="300.0"  stroke="#a19b9b" strokeType="INSIDE" strokeWidth="0.3" width="536.0">
          <effect>
             <Reflection bottomOpacity="0.12" fraction="0.47" topOpacity="1.0" />
          </effect>
       </Rectangle>
-      <TextField fx:id="textField" layoutX="128.0" layoutY="300.0" onDragEntered="#setGoBtn" prefHeight="25.0" prefWidth="536.0" style="-fx-background-color: TRANSPARENT;">
+      <TextField fx:id="textField" layoutX="128.0" layoutY="300.0" onDragEntered="#setGoBtn" prefHeight="25.0" prefWidth="536.0" onMouseEntered="#setEffectOnSearchBar" onMouseExited="#setNoEffectRec" style="-fx-background-color: TRANSPARENT;">
          <cursor>
             <Cursor fx:constant="TEXT" />
          </cursor>
@@ -36,7 +36,7 @@
             <Font name="Arial" size="12.0" />
          </font>
       </TextField>
-      <Text fill="#00000068" layoutX="282.0" layoutY="285.0" strokeType="OUTSIDE" strokeWidth="0.0" text="search in all around the world!">
+      <Text fx:id="text" fill="#00000068" layoutX="282.0" layoutY="285.0" strokeType="OUTSIDE" strokeWidth="0.0" onMouseEntered="#setEffect" onMouseExited="#setNoEffect" text="search in all around the world!">
          <font>
             <Font name="Berlin Sans FB" size="18.0" />
          </font>
@@ -52,7 +52,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button fx:id="register" layoutX="713.0" layoutY="12.0" mnemonicParsing="false" style="-fx-background-color: #376DFE;" text="Register" textFill="#fcfcfc">
+      <Button fx:id="register" layoutX="713.0" layoutY="12.0" mnemonicParsing="false" onAction="#setRegister" style="-fx-background-color: #376DFE;" text="Register" textFill="#fcfcfc">
          <font>
             <Font name="Berlin Sans FB" size="18.0" />
          </font>
@@ -60,7 +60,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button fx:id="login" layoutX="633.0" layoutY="12.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="71.0" style="-fx-background-color: #fcfcfc;" text="Login" textFill="#376dfe">
+      <Button fx:id="login" layoutX="633.0" layoutY="12.0" mnemonicParsing="false" onAction="#setLogin" prefHeight="33.0" prefWidth="71.0" style="-fx-background-color: #fcfcfc;" text="Login" textFill="#376dfe">
          <font>
             <Font name="Berlin Sans FB" size="18.0" />
          </font>
@@ -68,12 +68,12 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <ImageView fx:id="profile" fitHeight="81.0" fitWidth="60.0" layoutX="14.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true" visible="false">
+      <ImageView fx:id="profile" fitHeight="81.0" fitWidth="60.0" layoutX="14.0" layoutY="14.0" pickOnBounds="true" onMouseClicked="#setProfileFileChooser" preserveRatio="true" visible="false">
          <image>
             <Image url="@../../../profile.jpeg" />
          </image>
       </ImageView>
-      <Text fx:id="userHi" fill="#00000068" layoutX="89.0" layoutY="50.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hi user!" visible="false">
+      <Text fx:id="userHi" fill="#00000068" layoutX="89.0" layoutY="50.0" strokeType="OUTSIDE" strokeWidth="0.0" onMouseEntered="#setEffectOnUserHi" onMouseExited="#setNoEffect" onMouseClicked="#forUser" text="Hi user!" visible="false">
          <font>
             <Font name="Berlin Sans FB" size="16.0" />
          </font>
