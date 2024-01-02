@@ -75,10 +75,13 @@ public class SearchPage implements Initializable {
 
     public void setGoBtn() {
         list = new ArrayList<>(1000);
-        if (textField.getText().contains("+")){
+        if (textField.getText().contains("+")) {
             String[] arr = textField.getText().split("\\s+");
-            list = sf.plusSearch(arr[0],arr[2]);
-        }else{
+            list = sf.plusSearch(arr[0], arr[2]);
+        } else if (textField.getText().contains("-")) {
+            String[] arr = textField.getText().split("\\s+");
+            list = sf.notCommon(arr[0], arr[1]);
+        } else {
             list = sf.findDoc(textField.getText());
             if (list.isEmpty()) {
                 list = sf.findSimilarDocs(textField.getText());
@@ -157,7 +160,6 @@ public class SearchPage implements Initializable {
         user.getBookmark().add(t114.getText().substring(9));
         setGoEveryPage(e);
     }
-
 
 
     public void setGoEveryPage(ActionEvent e) throws IOException {

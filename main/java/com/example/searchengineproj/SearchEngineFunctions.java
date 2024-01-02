@@ -68,18 +68,17 @@ public class SearchEngineFunctions {
         }
     }
 
-    public static StringBuilder textOfEeachFile(String nameFile) throws IOException
-    {
+    public static StringBuilder textOfEeachFile(String nameFile) throws IOException {
         StringBuilder str = new StringBuilder();
         File folder = new File("C:\\Users\\asus\\IdeaProjects\\searchEngineProj\\src\\EnglishData");
         File[] files = folder.listFiles();
-        if (files !=null){
-            for (File file : files){
-                if (file.isFile()){
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
                     String name = file.getName();
-                    if (nameFile.equals(name)){
+                    if (nameFile.equals(name)) {
                         List<String> lines = Files.readAllLines(file.toPath());
-                        for (String s : lines){
+                        for (String s : lines) {
                             str.append(s).append("\n");
                         }
                     }
@@ -121,7 +120,9 @@ public class SearchEngineFunctions {
     public List<String> notCommon(String first, String second) {
         List<String> list1 = findDoc(first);
         List<String> list2 = findDoc(second);
-        list1.removeAll(list2);
+        for (String s : list2) {
+            list1.remove(s);
+        }
         return list1;
     }
 
