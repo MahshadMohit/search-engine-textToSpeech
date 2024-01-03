@@ -126,14 +126,7 @@ public class SearchEngineFunctions {
         return list1;
     }
 
-    public List<String> allCommon(String first, String second) {
-        List<String> list = new ArrayList<>();
-        list.addAll(plusSearch(first, second));
-        list.addAll(notCommon(first, second));
-        return list;
 
-
-    }
 
 
 }

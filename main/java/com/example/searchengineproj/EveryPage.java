@@ -6,8 +6,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
 
 import javafx.scene.image.ImageView;
@@ -15,6 +17,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class EveryPage implements Initializable {
@@ -38,7 +41,17 @@ public class EveryPage implements Initializable {
         stage.show();
     }
     public void setSave(){
-        user.getBookmark().add(str);
+        user.addBookMark(str);
+        SQLConnector sql = new SQLConnector();
+        String sqlCmd = String.format("UPDATE users SET history = '%s' WHERE username = '%s'",str,user.getUsername());
+        //sql.ExecuteSql(sqlCmd);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("your history ");
+        alert.setContentText(user.getBookmark().toString());
+
+        Optional<ButtonType> result = alert.showAndWait();
+
+
     }
 
 

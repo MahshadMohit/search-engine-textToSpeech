@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -74,22 +75,29 @@ public class SearchPage implements Initializable {
 
 
     public void setGoBtn() {
-        list = new ArrayList<>(1000);
-        if (textField.getText().contains("+")) {
-            String[] arr = textField.getText().split("\\s+");
-            list = sf.plusSearch(arr[0], arr[2]);
-        } else if (textField.getText().contains("-")) {
-            String[] arr = textField.getText().split("\\s+");
-            list = sf.notCommon(arr[0], arr[1]);
-        } else {
-            list = sf.findDoc(textField.getText());
-            if (list.isEmpty()) {
-                list = sf.findSimilarDocs(textField.getText());
-            }
-        }
+        try {
 
-        setList(0);
-        count++;
+            list = new ArrayList<>(1000);
+            if (textField.getText().contains("+")) {
+                String[] arr = textField.getText().split("\\s+");
+                list = sf.plusSearch(arr[0], arr[2]);
+            } else if (textField.getText().contains("-")) {
+                String[] arr = textField.getText().split("\\s+");
+                list = sf.notCommon(arr[0], arr[1]);
+            } else {
+                list = sf.findDoc(textField.getText());
+                if (list.isEmpty()) {
+                    list = sf.findSimilarDocs(textField.getText());
+                }
+            }
+
+            setList(0);
+            count++;
+        }catch (Exception e){
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Error in Search!");
+            alert.showAndWait();
+        }
 
 
     }
@@ -133,31 +141,31 @@ public class SearchPage implements Initializable {
 
     public void setT1(ActionEvent e) throws IOException {
         EveryPage.str = t11.getText().substring(9);
-        user.getBookmark().add(t11.getText().substring(9));
+        //user.getBookmark().add(t11.getText().substring(9));
         setGoEveryPage(e);
     }
 
     public void setT111(ActionEvent e) throws IOException {
         EveryPage.str = t111.getText().substring(9);
-        user.getBookmark().add(t111.getText().substring(9));
+        //user.getBookmark().add(t111.getText().substring(9));
         setGoEveryPage(e);
     }
 
     public void setT112(ActionEvent e) throws IOException {
         EveryPage.str = t112.getText().substring(9);
-        user.getBookmark().add(t112.getText().substring(9));
+        //user.getBookmark().add(t112.getText().substring(9));
         setGoEveryPage(e);
     }
 
     public void setT113(ActionEvent e) throws IOException {
         EveryPage.str = t113.getText().substring(9);
-        user.getBookmark().add(t113.getText().substring(9));
+        //user.getBookmark().add(t113.getText().substring(9));
         setGoEveryPage(e);
     }
 
     public void setT114(ActionEvent e) throws IOException {
         EveryPage.str = t114.getText().substring(9);
-        user.getBookmark().add(t114.getText().substring(9));
+        //user.getBookmark().add(t114.getText().substring(9));
         setGoEveryPage(e);
     }
 

@@ -13,7 +13,7 @@ public class SQLConnector {
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection con  = DriverManager.getConnection(URL,username,password);
             Statement s = con.prepareStatement(sqlCmd);
-            s.execute(sqlCmd);
+            //s.execute(sqlCmd);
             con.close();
         }catch (Exception e){
             e.printStackTrace();

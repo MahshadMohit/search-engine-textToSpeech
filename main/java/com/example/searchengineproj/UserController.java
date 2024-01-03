@@ -18,8 +18,9 @@ public class UserController {
         user.setPassword(password);
         user.setProfile(new Image("profile.jpeg"));
         users.add(user);
+        bookmarks.add(user.getBookmark());
         SQLConnector sql = new SQLConnector();
-        String sqlCmd = String.format("INSERT INTO users (username , password) VALUES ('%s','%s')",username,password);
+        String sqlCmd = String.format("INSERT INTO users (username , password ) VALUES ('%s','%s )",username,password);
         //sql.ExecuteSql(sqlCmd);
     }
 

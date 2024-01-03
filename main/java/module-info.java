@@ -4,6 +4,7 @@ module com.example.searchengineproj {
     //requires org.apache.commons.codec;
     requires java.sql;
     requires commons.codec;
+    requires mysql.connector.j;
 
 
     opens com.example.searchengineproj to javafx.fxml;

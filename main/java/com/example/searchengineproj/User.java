@@ -8,10 +8,12 @@ public class User {
     private final String username;
     private String password;
     private Image profile;
-    private List<String> bookmark = new ArrayList<>();
+    private List<String> bookmark ;
 
     public User(String username) {
         this.username = username;
+        bookmark = new ArrayList<>();
+
     }
 
 
@@ -41,6 +43,9 @@ public class User {
     public void setBookmark(List<String> bookmark){
         this.bookmark = bookmark;
     }
+    public void addBookMark(String z){
+        this.bookmark.add(z);    }
+
 
 
     @Override
