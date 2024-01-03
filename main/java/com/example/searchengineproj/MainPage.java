@@ -25,6 +25,7 @@ import javafx.util.Pair;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -58,12 +59,12 @@ public class MainPage implements Initializable {
     public static String str;
     public static User user;
 
-    public void setGoBtn(ActionEvent e) throws IOException{
+    public void setGoBtn(ActionEvent e) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(searchEngineApplication.class.getResource("searchPage.fxml"));
         str = textField.getText();
-        if (user == null){
+        if (user == null) {
             user = new User("temp");
-            UserController.register(user.getUsername(),"temp");
+            UserController.register(user.getUsername(), "temp");
         }
         SearchPage.user = user;
         Scene scene = new Scene(fxmlLoader.load());
@@ -71,45 +72,23 @@ public class MainPage implements Initializable {
         stage.setScene(scene);
         stage.show();
     }
-    public void setRegister(){
-        forUser();
-    }
-    public void setLogin(){
+
+    public void setRegister() {
         forUser();
     }
 
+    public void setLogin() {
+        forLogin();
+    }
 
-    public void forUser(){
-        /*Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Register");
-        ButtonType login = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(login,ButtonType.CANCEL);
-        TextField username = new TextField();
-        username.setPromptText("Enter username...");
-        TextField pass = new TextField();
-        pass.setPromptText("Enter password...");
-        GridPane gridPane = new GridPane();
-        gridPane.setHgap(10);
-        gridPane.setVgap(10);
-        gridPane.setPadding(new Insets(20, 150, 10, 10));
-        gridPane.add(username,0,0);
-        gridPane.add(pass,2,0);
-        dialog.getDialogPane().setContent(gridPane);
-        dialog.show();
-        //Optional<ButtonType> result = dialog.show();
-        if (dialog.getDialogPane().getButtonTypes().get(0) == ButtonType.OK ){
-            user = new User(username.getText());
-            user.setPassword(pass.getText());
-            user.setBookmark(null);
-            userHi.setText("Hi " + user.getUsername());
-            System.out.println("TRue");
-        }*/
+
+
+    public void forUser() {
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Register");
         dialog.setHeaderText("set your username and password");
-
-        ButtonType login = new ButtonType("Sign up", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(login,ButtonType.CANCEL);
+        ButtonType login = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(login, ButtonType.CANCEL);
         GridPane grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
@@ -146,46 +125,106 @@ public class MainPage implements Initializable {
             user = new User(usernamePassword.getKey());
             user.setPassword(usernamePassword.getValue());
             user.setBookmark(new ArrayList<>());
+            UserController.register(user.getUsername(), user.getPassword());
 
-            //UserController.register(user.getUsername(), user.getPassword());
+
             userHi.setText("Hi " + usernamePassword.getKey());
 
         });
 
     }
-    public void setEffectOnSearchBar(){
+    public void forLogin() {
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Login");
+        dialog.setHeaderText("set your username and password");
+
+        ButtonType login = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(login, ButtonType.CANCEL);
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField username = new TextField();
+        username.setPromptText("Username");
+        TextField password = new PasswordField();
+        password.setPromptText("Password");
+
+        grid.add(new Label("Username:"), 0, 0);
+        grid.add(username, 1, 0);
+        grid.add(new Label("Password:"), 0, 1);
+        grid.add(password, 1, 1);
+
+        Node loginButton = dialog.getDialogPane().lookupButton(login);
+        loginButton.setDisable(true);
+        username.textProperty().addListener((observable, oldValue, newValue) -> {
+            loginButton.setDisable(newValue.trim().isEmpty());
+        });
+
+        dialog.getDialogPane().setContent(grid);
+        Platform.runLater(() -> username.requestFocus());
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == login) {
+                return new Pair<>(username.getText(), password.getText());
+            }
+            return null;
+        });
+
+        Optional<Pair<String, String>> result = dialog.showAndWait();
+        result.ifPresent(usernamePassword -> {
+            System.out.println("Username=" + usernamePassword.getKey() + ", Password=" + usernamePassword.getValue());
+            //user = new User(usernamePassword.getKey());
+            //user.setPassword(usernamePassword.getValue());
+            try {
+                user = UserController.login(usernamePassword.getKey(),usernamePassword.getValue());
+            } catch (SQLException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+
+
+            userHi.setText("Hi " + usernamePassword.getKey());
+
+        });
+    }
+
+    public void setEffectOnSearchBar() {
         textField.setEffect(null);
         textField.setEffect(setDrop());
 
     }
-    public void setNoEffectRec(){
+
+    public void setNoEffectRec() {
         textField.setEffect(null);
     }
-    public void setEffect(){
+
+    public void setEffect() {
         text.setEffect(setDrop());
     }
-    public void setNoEffect(){
+
+    public void setNoEffect() {
         text.setEffect(null);
         userHi.setEffect(null);
     }
-    public DropShadow setDrop(){
+
+    public DropShadow setDrop() {
         DropShadow ds = new DropShadow();
-        ds.setColor(Color.web("#514b4b",1));
+        ds.setColor(Color.web("#514b4b", 1));
         ds.setWidth(21);
         ds.setHeight(21);
         return ds;
     }
-    public void setEffectOnUserHi(){
+
+    public void setEffectOnUserHi() {
         userHi.setEffect(setDrop());
     }
 
-    public void setProfileFileChooser(){
+    public void setProfileFileChooser() {
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilterJPG = new FileChooser.ExtensionFilter("JPG files (*.jpg)", "*.JPG");
         FileChooser.ExtensionFilter extFilterPNG = new FileChooser.ExtensionFilter("PNG files (*.png)", "*.PNG");
-        fileChooser.getExtensionFilters().addAll(extFilterPNG,extFilterJPG);
+        fileChooser.getExtensionFilters().addAll(extFilterPNG, extFilterJPG);
         File file = fileChooser.showOpenDialog(null);
-        if (file !=null){
+        if (file != null) {
             Image image = new Image(file.toURI().toString());
             profile.setImage(image);
             user.setProfile(profile.getImage());
@@ -195,7 +234,7 @@ public class MainPage implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        if (user == null){
+        if (user == null) {
             profile.setVisible(true);
             profile.setImage(new Image("profile.jpeg"));
             userHi.setText("Hi ! Please login or signup :)");
