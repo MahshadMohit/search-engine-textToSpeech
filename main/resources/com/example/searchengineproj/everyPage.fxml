@@ -39,7 +39,7 @@
         </Button>
       <ImageView fx:id="save" fitHeight="33.0" fitWidth="41.0" layoutX="33.0" layoutY="449.0" onMouseClicked="#setSave" pickOnBounds="true" preserveRatio="true">
          <image>
-            <Image url="@../../../5153405-200.png" />
+            <Image url="@../../../download.png" />
          </image>
       </ImageView>
     </children>

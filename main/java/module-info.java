@@ -5,6 +5,7 @@ module com.example.searchengineproj {
     requires java.sql;
     requires commons.codec;
     requires mysql.connector.j;
+    requires freetts;
 
 
     opens com.example.searchengineproj to javafx.fxml;

@@ -1,5 +1,6 @@
 package com.example.searchengineproj;
 
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -40,17 +41,10 @@ public class EveryPage implements Initializable {
         stage.setScene(scene);
         stage.show();
     }
-    public void setSave(){
-        user.addBookMark(str);
-        SQLConnector sql = new SQLConnector();
-        String sqlCmd = String.format("UPDATE users SET history = '%s' WHERE username = '%s'",str,user.getUsername());
-        //sql.ExecuteSql(sqlCmd);
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("your history ");
-        alert.setContentText(user.getBookmark().toString());
 
-        Optional<ButtonType> result = alert.showAndWait();
+    public void setSave() {
 
+        TextToSpeech.theVoice(textArea.getText());
 
     }
 
@@ -70,6 +64,7 @@ public class EveryPage implements Initializable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
 
     }
 }
